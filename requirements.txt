@@ -1,0 +1,8 @@
+django
+djangorestframework
+psycopg2-binary
+drf-spectacular
+PyYAML
+pygments
+sqlparse
+mysqlclient==2.1.0

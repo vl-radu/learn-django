@@ -1,0 +1,43 @@
+name: django-learning
+
+services:
+  db:
+    image: mariadb:lts-noble
+    container_name: inventory-db
+    restart: always
+    environment:
+      MARIADB_USER: root
+      MARIADB_ROOT_PASSWORD: 1234
+      MARIADB_DB: inventory
+    ports:
+      - "3306:3306"
+  django:
+    build: .
+    container_name: inventory-django-app
+    restart: always
+    depends_on:
+      - db
+    volumes:
+      - ./app:/app
+    ports:
+      - "8000:8000"
+    command: >
+      sh -c "
+        if python manage.py shell -c 'from django.contrib.auth.models import User; print (User.objects.filter(username=\"admin\").exists())' | grep -q 'True'; then
+          echo 'Admin user exists, skipping app and db setup'
+        else
+          if [ ! -f manage.py ]; then
+            django-admin startproject core .;
+          fi &&
+          if [ ! -d inventory ]; then
+            python manage.py startapp inventory
+          fi &&
+          rm -f inventory/migrations/0001_initial.py &&
+          python manage.py migrate &&
+          python manage.py makemigrations &&
+          python manage.py migrate inventory --fake &&
+          python manage.py shell -c 'from django.contrib.auth.models import User; User.objects.create_superuser(\"admin\", \"admin@example.com\", \"admin\");' ;
+        fi &&
+        python manage.py runserver 0.0.0.0:8000
+      "
+
