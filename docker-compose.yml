@@ -8,9 +8,11 @@ services:
     environment:
       MARIADB_USER: root
       MARIADB_ROOT_PASSWORD: 1234
-      MARIADB_DB: inventory
+      MARIADB_DATABASE: inventory
     ports:
       - "3306:3306"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
   django:
     build: .
     container_name: inventory-django-app

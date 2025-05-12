@@ -11,4 +11,4 @@ RUN pip install --no-cache-dir --upgrade pip && \
         mariadb-dev && \
     pip install --no-cache-dir -r requirements.txt
 
-EXPOSE 8088
+EXPOSE 8000

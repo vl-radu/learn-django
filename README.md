@@ -1,1 +1,1 @@
-This repo will be used for django learning and testting.
+This repo will be used for django learning and testing.
