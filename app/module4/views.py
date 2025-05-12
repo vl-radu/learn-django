@@ -7,7 +7,7 @@ from rest_framework import status
 from drf_spectacular.utils import (
     extend_schema,
 )
-# from inventory.models import Category, User
+from inventory.models import Category, User
 from .serializers import (
     CategorySerializer, 
     CategoryReturnSerializer,
@@ -63,3 +63,39 @@ class UserInsertViewSet(ViewSet):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
+# Bulk Insert with bulk_create()
+
+class CategoryBulkInsertViewSet(ViewSet):
+    @extend_schema(
+        request=CategorySerializer(many=True), # Accepts multiple objects
+        responses={
+            201: CategoryReturnSerializer(many=True) #Returns multiple inserted objects
+            }, # Expected response will be the created category
+            tags=["Module 4"],
+    )
+    def create(self, request):
+        # Ensure request contains a list of items
+        if not isinstance(request.data, list):
+            return Response(
+                {"error": "Expected a list of objects"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
+        # Deserialize data (many=True allows multiple objects)
+        serializer = CategorySerializer(data=request.data, many=True)
+
+        if serializer.is_valid():
+            # Convert validated data to model instances (without saving yet)
+            categories = [Category(**item) for item in serializer.validated_data]
+
+            # Use bulk_create() to insert all at once
+            created_categories = Category.objects.bulk_create(categories)
+
+            # Serialize the created objects and return response
+            return Response(
+                CategorySerializer(created_categories, many=True).data,
+                status=status.HTTP_201_CREATED,
+            )
+        else:
+            # Return validation errors
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
